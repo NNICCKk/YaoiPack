@@ -32,11 +32,12 @@ jobs:
       - name: Create Pack Zip
         run: zip -r public/pack.zip assets/ pack.mcmeta pack.png
 
-      # 3. Add supporting files to the web folder so GitHub doesn't ignore things
-      - name: Add Static Web Files
+      # 3. Create a landing page to force GitHub to register the zip file
+      - name: Create Web Index Page
         run: |
           touch public/.nojekyll
           cp pack.png public/pack.png 2>/dev/null || true
+          echo '<html><body><h1>Minecraft Server Resource Pack Hosting</h1><p><a href="pack.zip">Download pack.zip Directly</a></p></body></html>' > public/index.html
 
       - name: Generate SHA-1 Hash
         run: |
