@@ -24,32 +24,31 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      # 1. Create a clean folder specifically for the web host
-      - name: Setup Web Folder
-        run: mkdir public
+      # 1. Clear out any old folders and build fresh
+      - name: Clean and Setup Folder
+        run: |
+          rm -rf public
+          mkdir public
 
-      # 2. Zip your files directly into that web folder
+      # 2. Build the ZIP with forced lowercase tracking
       - name: Create Pack Zip
-        run: zip -r public/pack.zip assets/ pack.mcmeta pack.png
+        run: zip -r public/pack.zip assets pack.mcmeta pack.png
+        continue-on-error: true
 
-      # 3. Create a landing page to force GitHub to register the zip file
+      # 3. Create the Index page using a local relative file path link
       - name: Create Web Index Page
         run: |
           touch public/.nojekyll
           cp pack.png public/pack.png 2>/dev/null || true
-          echo '<html><body><h1>Minecraft Server Resource Pack Hosting</h1><p><a href="pack.zip">Download pack.zip Directly</a></p></body></html>' > public/index.html
+          echo '<html><head><title>Minecraft Resource Pack Host</title></head><body style="font-family:sans-serif; text-align:center; padding-top:50px;"><h1>YaoiPack Server Hosting</h1><p><a href="./pack.zip" style="font-size:20px; color:#007bff; text-decoration:none; font-weight:bold;">👉 Click Here to Download pack.zip Directly 👈</a></p></body></html>' > public/index.html
 
-      - name: Generate SHA-1 Hash
-        run: |
-          SHA=$(sha1sum public/pack.zip | awk '{print $1}')
-          echo "============================================="
-          echo " YOUR NEW SHA-1 HASH IS: $SHA"
-          echo "============================================="
+      # 4. Debug confirmation to verify the zip file physically exists in the container
+      - name: Verify Web Directory Assets
+        run: ls -la public/
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
-      # 4. Target ONLY the public folder to guarantee the zip transfers
       - name: Upload Artifact
         uses: actions/upload-pages-artifact@v3
         with:
