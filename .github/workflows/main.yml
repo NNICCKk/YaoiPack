@@ -3,34 +3,46 @@ name: Deploy Resource Pack
 on:
   push:
     branches:
-      - main 
+      - main
+
+# Permissions needed to host static files on GitHub Pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
 
 jobs:
-  build-and-release:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
-    permissions:
-      contents: write 
-
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Create Valid Pack Zip
+      - name: Create Pack Zip
         run: zip -r pack.zip assets/ pack.mcmeta pack.png
 
       - name: Generate SHA-1 Hash
-        id: hash
         run: |
           SHA=$(sha1sum pack.zip | awk '{print $1}')
-          echo "sha1=$SHA" >> $GITHUB_OUTPUT
-          echo "The new SHA-1 hash is: $SHA"
+          echo "============================================="
+          echo " YOUR NEW SHA-1 HASH IS: $SHA"
+          echo "============================================="
 
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Artifact
+        uses: actions/upload-pages-artifact@v3
         with:
-          tag_name: v${{ github.run_number }}
-          name: Resource Pack v${{ github.run_number }}
-          body: |
-            Automated Server Resource Pack Build.
-            **SHA-1 Hash for server.properties:** `${{ steps.hash.outputs.sha1 }}`
-          files: pack.zip
+          path: '.'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
