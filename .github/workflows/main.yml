@@ -1,59 +1,38 @@
-name: Deploy Resource Pack
+name: Compile Pack to Repository
 
 on:
   push:
     branches:
       - main
+    paths-ignore:
+      - 'pack.zip'
 
 permissions:
-  contents: read
-  pages: write
-  id-token: write
-
-concurrency:
-  group: "pages"
-  cancel-in-progress: false
+  contents: write
 
 jobs:
-  deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+  build-and-commit:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      # 1. Clear out any old folders and build fresh
-      - name: Clean and Setup Folder
-        run: |
-          rm -rf public
-          mkdir public
-
-      # 2. Build the ZIP with forced lowercase tracking
       - name: Create Pack Zip
-        run: zip -r public/pack.zip assets pack.mcmeta pack.png
-        continue-on-error: true
-
-      # 3. Create the Index page using a local relative file path link
-      - name: Create Web Index Page
         run: |
-          touch public/.nojekyll
-          cp pack.png public/pack.png 2>/dev/null || true
-          echo '<html><head><title>Minecraft Resource Pack Host</title></head><body style="font-family:sans-serif; text-align:center; padding-top:50px;"><h1>YaoiPack Server Hosting</h1><p><a href="./pack.zip" style="font-size:20px; color:#007bff; text-decoration:none; font-weight:bold;">👉 Click Here to Download pack.zip Directly 👈</a></p></body></html>' > public/index.html
+          rm -f pack.zip
+          zip -r pack.zip assets pack.mcmeta pack.png
+          
+      - name: Generate SHA-1 Hash
+        run: |
+          SHA=$(sha1sum pack.zip | awk '{print $1}')
+          echo "============================================="
+          echo " YOUR NEW SHA-1 HASH IS: $SHA"
+          echo "============================================="
 
-      # 4. Debug confirmation to verify the zip file physically exists in the container
-      - name: Verify Web Directory Assets
-        run: ls -la public/
-
-      - name: Setup Pages
-        uses: actions/configure-pages@v5
-
-      - name: Upload Artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: './public'
-
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+      - name: Commit Zip Directly to Repo
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add pack.zip
+          git commit -m "Automated pack.zip rebuild [skip ci]" || echo "No changes to commit"
+          git push origin main
