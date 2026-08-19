@@ -1,0 +1,10 @@
+{
+  "pack": {
+    "description": "yaoi pack (:",
+    "pack_format": 81,
+    "supported_formats": {
+      "min_inclusive": 6,
+      "max_inclusive": 81
+    }
+  }
+}
