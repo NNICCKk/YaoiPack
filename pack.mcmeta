@@ -1,8 +1,19 @@
 {
   "pack": {
-    "description": "Yaoi pack?",
-    "supported_formats": 101,
-    "min_format": 80,
-    "max_format": 109
+    "min_format":88.0,
+    "max_format":107.1,
+    "description": [
+      {
+        "text": "Yaoi Zone Texture pack",
+        "color": "#67C4C7"
+      },
+      {
+        "text": "\n"
+      },
+      {
+        "text": "the yaoi pack",
+        "color": "#908b8b"
+      }
+    ]
   }
 }
