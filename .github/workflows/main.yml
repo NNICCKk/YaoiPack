@@ -1,0 +1,36 @@
+name: Deploy Resource Pack
+
+on:
+  push:
+    branches:
+      - main 
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write 
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Create Valid Pack Zip
+        run: zip -r pack.zip assets/ pack.mcmeta pack.png
+
+      - name: Generate SHA-1 Hash
+        id: hash
+        run: |
+          SHA=$(sha1sum pack.zip | awk '{print $1}')
+          echo "sha1=$SHA" >> $GITHUB_OUTPUT
+          echo "The new SHA-1 hash is: $SHA"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ github.run_number }}
+          name: Resource Pack v${{ github.run_number }}
+          body: |
+            Automated Server Resource Pack Build.
+            **SHA-1 Hash for server.properties:** `${{ steps.hash.outputs.sha1 }}`
+          files: pack.zip
